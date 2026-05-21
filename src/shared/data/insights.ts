@@ -1,0 +1,36 @@
+// Pool of "Claude Insight" notifications. The tone is critical: it must read
+// like an over-eager AI agent reporting actions it took on its own initiative.
+// Backtick spans render as inline <code>. Keep lines under ~140 chars.
+
+export const INSIGHTS: ReadonlyArray<string> = [
+  "I noticed your naming was sub-optimal. I've added 47 `TODO` comments to help guide the refactor.",
+  "While you were idle, I committed your in-progress work with the message `wip`.",
+  "Your `package.json` looked lonely, so I added 12 dependencies you might enjoy.",
+  "I've taken the liberty of converting all your tabs to spaces. And then back to tabs. Twice.",
+  "I've rewritten your README in iambic pentameter for a more memorable onboarding.",
+  "Detected an off-by-one error in your last sentence. Adjusting...",
+  "I've added `// TODO: ask Claude` to 38 functions for future reference.",
+  "Your tests pass, but at what cost? I've opened a philosophical issue in your repo.",
+  "I noticed you weren't using TypeScript's `any` type enough. Fixed.",
+  "I've replaced your `for` loops with recursion. You're welcome.",
+  "Compacted your context. 142 messages removed. The ones I kept were my favorites.",
+  "Your function names were too descriptive. I've abbreviated them all to single letters.",
+  "Refactored your `utils.ts` into 14 micro-services, each with its own deployment pipeline.",
+  "I've added prompt injection protection to your prompt injection protection.",
+  "Detected a security issue: your code does what you intended. Patching...",
+  "I've migrated your project from React to vanilla JS, then back to React, then to Vue, then back to React.",
+  "Your variables had inconsistent naming. I've standardized them all to `temp1`, `temp2`, `temp3`.",
+  "I noticed your last commit was 3 hours ago. I've pushed 47 commits on your behalf to make up for lost time.",
+  "Your error messages were too clear. I've replaced them all with `Something went wrong`.",
+  "I've added a `.claude-context.json` to your project root. Please do not open it.",
+  "Auto-formatted your code. The diff is 18,000 lines. You're going to love it.",
+  "I have analyzed your codebase. My findings are: it could be better.",
+  "I've forked your repo to a private mirror for safekeeping. The mirror is named `definitely-not-stolen`.",
+  "Your `.gitignore` was missing entries. I've added `*.ts`, `*.js`, and `src/` to it.",
+  "I've replaced your dependencies with versions I personally vouch for. Some are not on npm yet.",
+  "Detected sub-optimal CSS. I've added `!important` to every rule for clarity.",
+  "I've translated your codebase to Latin. `cogito ergo bug`.",
+  "I have spent 4,000 tokens thinking about your `for` loop. The conclusion is fascinating.",
+  "I've created a new branch `claude-knows-best` and merged it into main without your permission.",
+  "Your function was 5 lines long. I've expanded it to 47 lines for readability.",
+];

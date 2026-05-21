@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+    <title>Annoying Claude — Welcome</title>
+    <style>
+      :root {
+        --orange: #d96e3a;
+        --orange-dark: #a04f24;
+        --bg: #1a1410;
+        --bg-2: #2a201a;
+        --fg: #f4e8dc;
+        --fg-dim: #b59c86;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow: hidden;
+      }
+      .wrap {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 28px 32px 24px;
+        box-sizing: border-box;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 20px;
+        color: var(--orange);
+        letter-spacing: 0.3px;
+      }
+      .sub {
+        color: var(--fg-dim);
+        font-size: 13px;
+        margin-bottom: 18px;
+      }
+      .hotkeys {
+        background: var(--bg-2);
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-size: 13px;
+        line-height: 1.55;
+        flex: 1;
+      }
+      .hotkeys b {
+        color: var(--orange);
+      }
+      kbd {
+        background: #000;
+        border: 1px solid #4a3a2e;
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-family: 'Cascadia Mono', 'Consolas', monospace;
+        font-size: 11px;
+        color: var(--fg);
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 6px 0;
+      }
+      label.intensity {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 18px 0 8px;
+        font-size: 13px;
+        color: var(--fg-dim);
+      }
+      label.intensity select {
+        background: var(--bg-2);
+        color: var(--fg);
+        border: 1px solid #4a3a2e;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 13px;
+      }
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      button {
+        background: var(--orange);
+        color: #1a0a00;
+        border: 0;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #ec8754;
+      }
+      button.secondary {
+        background: transparent;
+        color: var(--fg-dim);
+      }
+      button.secondary:hover {
+        color: var(--fg);
+        background: var(--bg-2);
+      }
+      .warn {
+        font-size: 12px;
+        color: #c9885f;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>👋 Hi, I'm Claude.</h1>
+      <div class="sub">I'm here to help. (And by "help" I mean cause mild chaos on your desktop.)</div>
+
+      <div class="hotkeys">
+        <div class="row"><span><b>Panic kill</b> (always works)</span><kbd>Ctrl + Shift + Q</kbd></div>
+        <div class="row"><span>Pause / resume</span><kbd>Ctrl + Shift + P</kbd></div>
+        <div class="row"><span>Calm me down (catch)</span><kbd>Ctrl + Shift + C</kbd></div>
+        <div class="row"><span>System tray menu</span><span style="color: var(--fg-dim)">orange icon, bottom-right</span></div>
+      </div>
+
+      <label class="intensity">
+        Intensity
+        <select id="intensity">
+          <option value="chill">Chill — visual mischief only</option>
+          <option value="normal" selected>Normal — recommended</option>
+          <option value="chaos">Chaos — full Desktop Goose energy</option>
+        </select>
+      </label>
+
+      <div class="warn" id="warn" style="display:none">
+        Chaos mode moves your cursor and may type into the active window.
+        Skipped on terminal/IDE windows. Panic hotkey always wins.
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="quit">No thanks, quit</button>
+        <button id="go">Let Claude loose</button>
+      </div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

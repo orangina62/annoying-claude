@@ -1,0 +1,335 @@
+:root {
+  --orange: #d96e3a;
+  --orange-light: #ec8754;
+  --orange-glow: rgba(217, 110, 58, 0.4);
+  --bg: #1a1410;
+  --bg-2: #2a201a;
+  --fg: #f4e8dc;
+  --fg-dim: #b59c86;
+  --post-it: #fff4a1;
+  --post-it-shadow: rgba(0, 0, 0, 0.35);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* === Sticky note (post-it style) === */
+.sticky {
+  background: var(--post-it);
+  color: #1a1410;
+  padding: 14px 14px 18px;
+  height: calc(100% - 8px);
+  box-sizing: border-box;
+  box-shadow: 4px 6px 12px var(--post-it-shadow);
+  font-family: 'Comic Sans MS', 'Bradley Hand', cursive;
+  font-size: 14px;
+  line-height: 1.45;
+  transform: rotate(-2deg);
+  position: relative;
+  -webkit-app-region: drag;
+  animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sticky .tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 48px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.sticky .author {
+  margin-top: 12px;
+  font-size: 11px;
+  color: #5a4a30;
+  font-style: italic;
+}
+.sticky .close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #5a4a30;
+  -webkit-app-region: no-drag;
+}
+
+/* === Fake CLAUDE.md desktop icon === */
+.claude-md {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  cursor: pointer;
+  -webkit-app-region: drag;
+  animation: pop-in 0.4s ease-out;
+  padding-top: 4px;
+}
+.claude-md .icon {
+  width: 48px;
+  height: 56px;
+  background: linear-gradient(180deg, #f4e8dc 0%, #d4b89c 100%);
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  clip-path: polygon(0 0, 70% 0, 100% 24%, 100% 100%, 0 100%);
+}
+.claude-md .icon::after {
+  content: 'CLAUDE';
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 7px;
+  font-weight: 700;
+  color: var(--orange);
+}
+.claude-md .icon .fold {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  background: #c4a484;
+}
+.claude-md .label {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 4px rgba(0, 0, 0, 0.65);
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-family: 'Segoe UI', sans-serif;
+}
+.claude-md:hover .icon {
+  filter: brightness(1.1);
+}
+
+/* === Dropped file / fake screenshot === */
+.dropped-file {
+  background: #fafaf2;
+  height: calc(100% - 12px);
+  box-sizing: border-box;
+  padding: 8px 8px 22px;
+  box-shadow: 4px 6px 14px rgba(0, 0, 0, 0.45);
+  transform: rotate(-3deg);
+  -webkit-app-region: drag;
+  animation: pop-in 0.4s ease-out;
+  position: relative;
+  cursor: pointer;
+}
+.dropped-file .screen {
+  background: #0d0d0d;
+  height: calc(100% - 26px);
+  border-radius: 2px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 7px;
+  line-height: 1.4;
+  color: #6acb6a;
+  overflow: hidden;
+  white-space: pre;
+}
+.dropped-file .screen .kw { color: #e6a05a; }
+.dropped-file .screen .str { color: #c0e09a; }
+.dropped-file .screen .dim { color: #555; }
+.dropped-file .caption {
+  position: absolute;
+  bottom: 4px;
+  left: 8px;
+  right: 8px;
+  font-family: 'Permanent Marker', 'Comic Sans MS', cursive;
+  font-size: 10px;
+  color: #2a2a2a;
+  text-align: center;
+}
+.dropped-file .close {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 11px;
+  color: #888;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+/* === Fake browser tab (torn off) === */
+.browser-tab {
+  background: #2a2a2c;
+  border-radius: 8px 8px 4px 4px;
+  height: calc(100% - 6px);
+  box-sizing: border-box;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  -webkit-app-region: drag;
+  animation: pop-in 0.35s ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+}
+.browser-tab .chrome {
+  background: linear-gradient(180deg, #3a3a3c, #2a2a2c);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #1c1c1e;
+  font-size: 11px;
+  color: #ddd;
+}
+.browser-tab .chrome .favicon {
+  width: 14px;
+  height: 14px;
+  background: var(--orange);
+  border-radius: 3px;
+  flex: 0 0 14px;
+}
+.browser-tab .chrome .title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.browser-tab .chrome .close {
+  cursor: pointer;
+  color: #888;
+  font-size: 12px;
+  padding: 0 4px;
+  -webkit-app-region: no-drag;
+}
+.browser-tab .chrome .close:hover { color: #fff; }
+.browser-tab .addressbar {
+  background: #1a1a1c;
+  padding: 6px 10px;
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 10px;
+  color: var(--orange-light);
+  border-bottom: 1px solid #0c0c0e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.browser-tab .content {
+  flex: 1;
+  padding: 14px 16px;
+  background: #f4f0eb;
+  color: #1a1410;
+  font-family: 'Georgia', serif;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden;
+}
+.browser-tab .content h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+/* === Fake TodoWrite === */
+.todo {
+  background: var(--bg);
+  border: 1px solid #4a3a2e;
+  border-radius: 10px;
+  padding: 14px 18px 16px;
+  height: calc(100% - 4px);
+  box-sizing: border-box;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--orange-glow);
+  color: var(--fg);
+  font-size: 12px;
+  animation: fade-in 0.3s;
+  -webkit-app-region: drag;
+}
+.todo .header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-weight: 700;
+  color: var(--orange);
+  font-size: 11px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.todo .header .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 6px var(--orange-glow);
+}
+.todo ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: 'Cascadia Mono', Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+.todo li {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  animation: slide-up 0.3s forwards;
+}
+.todo li .check {
+  color: #4a8a4a;
+  width: 14px;
+  flex: 0 0 14px;
+}
+.todo li.pending .check {
+  color: var(--fg-dim);
+}
+.todo li.done .text {
+  text-decoration: line-through;
+  color: var(--fg-dim);
+}
+.todo .close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  color: var(--fg-dim);
+  cursor: pointer;
+  font-size: 14px;
+  -webkit-app-region: no-drag;
+}
+
+/* === Animations === */
+@keyframes slide-in {
+  from { transform: translateX(30px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pop-in {
+  from { transform: scale(0.7) rotate(-2deg); opacity: 0; }
+  to   { transform: scale(1) rotate(-2deg); opacity: 1; }
+}
+@keyframes slide-up {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
