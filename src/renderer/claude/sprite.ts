@@ -1,196 +1,295 @@
-// Procedural pixel-art sprite for the Claude mascot.
-// Phase 1 placeholder — no external PNG required. Drawn entirely from a 16x16
-// pixel grid using the canonical Claude Code orange palette. Replace with a real
-// sprite sheet in Phase 2.
-
 import type { CharacterState, Direction } from '@shared/types';
 
-// Palette pulled from the reference Claude Code mascot icon.
 const PALETTE = {
-  body: '#e0876a',         // main coral / claude orange
-  bodyDark: '#b15a3a',     // subtle shadow band on belly
-  eye: '#0d0d0d',
-  outline: '#0d0d0d',      // crisp single-color outline
-  highlight: '#e0876a',    // unused but kept for type-compat
-  eyeWhite: '#ffffff',     // unused
-  helmetLight: '#c8c8c8',  // chrome helmet
-  helmetDark: '#6a6a6a',   // helmet shadow / visor strap
-  swordBlade: '#f0f0f0',   // bright blade
-  swordEdge: '#a0a0a0',    // blade shadow
-  swordGrip: '#3a1f0e',    // dark brown grip
-  capBrown: '#7c5a3a',     // deerstalker cap main
-  capShadow: '#4a2f14',    // cap plaid darker accent
-  glassFrame: '#777777',   // magnifying glass metal frame
-  glassInterior: '#c0d8e0',// magnifying glass lens
+  body: '#e0876a',
+  bodyDark: '#b15a3a',
+  outline: '#111111',
+  eye: '#111111',
+  eyeWhite: '#ffffff',
+  helmetLight: '#c8c8c8',
+  helmetDark: '#6a6a6a',
+  swordBlade: '#f0f0f0',
+  swordEdge: '#a0a0a0',
+  swordGrip: '#3a1f0e',
+  capBrown: '#7c5a3a',
+  capShadow: '#4a2f14',
+  glassFrame: '#777777',
+  glassInterior: '#c0d8e0',
 };
 
-// Each frame is a 16x16 grid of palette keys (or '.' for transparent).
-type Pixel = '.' | keyof typeof PALETTE;
 type Frame = ReadonlyArray<string>;
 
-// Idle — Claude looking at you. Wider-than-tall blob, 2 ears, 4 legs, dark eyes.
 const IDLE_BASE: Frame = [
   '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-  '.oo.oo....oo.oo.',
-  '................',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
 ];
 
-// Blink — eyes become thin horizontal lines.
 const IDLE_BLINK: Frame = [
   '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
   'obbbbbbbbbbbbbbo',
   'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-  '.oo.oo....oo.oo.',
-  '................',
+  'obboooobboooobbo',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
 ];
 
-// Walk frame A — left pair planted, right pair pulled in (mid-stride).
 const WALK_R_1: Frame = [
   '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo.....oo.o.',
-  '.o..oo......o...',
-  '................',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
 ];
 
-// Walk frame B — mirror stride. Body bobs 1 px lower so legs feel grounded.
 const WALK_R_2: Frame = [
   '................',
   '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.o.oo.....oo.oo.',
-  '...o.......oo.o.',
-];
-
-const SLEEP: Frame = [
-  '.........z......',
-  '........z.z.....',
-  '.......z.z......',
-  '......z.........',
-  '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbBBbbbbbbBBbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-];
-
-// Battle: helmet on, sword held horizontal at chest level.
-const BATTLE_IDLE: Frame = [
-  '................',
-  '....HHHHHHHH....',
-  '...HHHHHHHHHH...',
-  '..HHHHHHHHHHHH..',
-  '..HHhhhhhhhhHH..',
-  '..HHEEhhhhEEHH..',
-  '..HHHHHHHHHHHH..',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
   '.obbbbbbbbbbbbo.',
-  'obbbbbbbbbbbGSss',
-  'obbbbbbbbbbbGSSs',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-  '.oo.oo....oo.oo.',
-  '................',
+  '.obbbbbbbbbbbbo.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....ooo..ooo....',
 ];
 
-// Battle: sword raised high (mid-swing). Blade extends above the helmet.
-const BATTLE_SWING: Frame = [
-  '..............S.',
-  '..............S.',
-  '...HHHHHHHH..SS.',
-  '..HHHHHHHHHHSS..',
-  '..HHHHHHHHHHS...',
-  '..HHhhhhhhhhHH..',
-  '..HHEEhhhhEEHH..',
-  '..HHHHHHHHHHHH..',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbGGo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-  '.oo.oo....oo.oo.',
+const TALK_OPEN: Frame = [
   '................',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbboobbbbbo.',
+  '..obbbboobbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
 ];
 
 const SURPRISE: Frame = [
   '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
-  'obbEEEbbbbEEEbbo',
-  'obEEEEbbbbEEEEbo',
-  'obEEEEbbbbEEEEbo',
-  'obbEEEbbbbEEEbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-  '.oo.oo....oo.oo.',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obWWWWbbWWWWbo.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEWWbbWWEWbbo',
+  'obbWWWWbbWWWWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbboobbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
+];
+
+const EVIL: Frame = [
   '................',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obboooobboooobbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
+];
+
+const SLEEP: Frame = [
+  '.............z..',
+  '...........z....',
+  '.........z......',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obbbbbbbbbbbbbbo',
+  'obbbbbbbbbbbbbbo',
+  'obboooobboooobbo',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+];
+
+const BATTLE_IDLE: Frame = [
+  '..............S.',
+  '....oooooooo..S.',
+  '...oHHHHHHHHo.S.',
+  '..oHHHHHHHHHHos.',
+  '.oHHHHHHHHHHHHG.',
+  '.ohhhhhhhhhhhhG.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
+];
+
+const BATTLE_SWING: Frame = [
+  '................',
+  '....oooooooo....',
+  '...oHHHHHHHHo...',
+  '..oHHHHHHHHHHo..',
+  '.oHHHHHHHHHHHHo.',
+  '.ohhhhhhhhhhhho.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbGSSs',
+  '..obbbbbbbbGSs..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
+];
+
+const DRAG_1: Frame = [
+  '................',
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....oooooooo....',
+  '....oBBBBBBo....',
+];
+
+const DRAG_2: Frame = [
+  '....oooooooo....',
+  '...obbbbbbbbo...',
+  '..obbbbbbbbbbo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbbbo.',
+  '..obbbbbbbbbbo..',
+  '...obbbbbbbbo...',
+  '....oooooooo....',
+  '....oooooooo....',
+  '....oBBBBBBo....',
+  '................',
+];
+
+const SHERLOCK_IDLE: Frame = [
+  '....oCCCCCCo....',
+  '...oCCCCCCCCo...',
+  '..oCCDCCCCDCCo..',
+  '..oCCCCCCCCCCo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obbWWWWbbWWWWbbo',
+  'obbWEEWbbWEEWbbo',
+  'obbWEEWbbWEEWbbo',
+  '.obWWWWbbWWWWbo.',
+  '.obbbbbbbbbbMMM.',
+  '..obbbbbbbbbMNM.',
+  '...obbbbbbbbMMM.',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
+];
+
+const SHERLOCK_BLINK: Frame = [
+  '....oCCCCCCo....',
+  '...oCCCCCCCCo...',
+  '..oCCDCCCCDCCo..',
+  '..oCCCCCCCCCCo..',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbbbo.',
+  'obbbbbbbbbbbbbbo',
+  'obbbbbbbbbbbbbbo',
+  'obboooobboooobbo',
+  '.obbbbbbbbbbbbo.',
+  '.obbbbbbbbbbMMM.',
+  '..obbbbbbbbbMNM.',
+  '...obbbbbbbbMMM.',
+  '....oooooooo....',
+  '....obo..obo....',
+  '....ooo..ooo....',
 ];
 
 const PIXEL_MAP: Record<string, string> = {
   o: PALETTE.outline,
   b: PALETTE.body,
   B: PALETTE.bodyDark,
-  h: PALETTE.helmetDark,    // re-used: now means "helmet shadow / visor"
+  h: PALETTE.helmetDark,
   E: PALETTE.eye,
   W: PALETTE.eyeWhite,
   z: PALETTE.eyeWhite,
@@ -208,108 +307,8 @@ const PIXEL_MAP: Record<string, string> = {
 export interface SpriteAnimation {
   frames: Frame[];
   fps: number;
-  /** When true, frame 0 is held except for brief blinks. */
   blinking?: boolean;
 }
-
-// Talk — small mouth opening between the eyes.
-const TALK_OPEN: Frame = [
-  '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbEEbbbbbbo',
-  'obbbbbEEEEbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-  '.oo.oo....oo.oo.',
-  '................',
-];
-
-// Drag — Claude carrying a small "blob" tucked under the body.
-const DRAG_1: Frame = [
-  '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbBBBBbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbBBbbbbboo',
-  '.oo.ooBBBBoo.oo.',
-  '.oo.oo.BB.oo.oo.',
-  '................',
-];
-
-const DRAG_2: Frame = [
-  '................',
-  '................',
-  '.oo........oo...',
-  '.oo........oo...',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbBBBBbbbbbo',
-  'obBBBBBBBBBBBBbo',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbBBbbbbboo',
-  '.o..oo.BB.oo..o.',
-  '....oo.BB.oo....',
-  '................',
-];
-
-// Sherlock costume — deerstalker cap (rows 0-2), normal body, magnifying glass
-// held on the right (rows 7-10). The glass overlays the body band.
-const SHERLOCK_IDLE: Frame = [
-  '...CCCCCCCCCC...',
-  '..CCCCCCCCCCCC..',
-  '.CCCDCCCCCCDCCC.',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbMMMMbb',
-  'obbbbbbbbMNNNNMb',
-  'obBBBBBBBMNNNNMM',
-  'obBBBBBBBBMMMMMM',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-  '.oo.oo....oo.oo.',
-  '................',
-];
-
-const SHERLOCK_BLINK: Frame = [
-  '...CCCCCCCCCC...',
-  '..CCCCCCCCCCCC..',
-  '.CCCDCCCCCCDCCC.',
-  'oobbbbbbbbbbbboo',
-  'obbbbbbbbbbbbbbo',
-  'obbbbbbbbbbbbbbo',
-  'obbEEbbbbbbEEbbo',
-  'obbbbbbbbbMMMMbb',
-  'obbbbbbbbMNNNNMb',
-  'obBBBBBBBMNNNNMM',
-  'obBBBBBBBBMMMMMM',
-  'obBBBBBBBBBBBBbo',
-  'oobbbbbbbbbbbboo',
-  '.oo.oo....oo.oo.',
-  '.oo.oo....oo.oo.',
-  '................',
-];
 
 export const ANIMATIONS: Record<CharacterState, SpriteAnimation> = {
   idle: { frames: [IDLE_BASE, IDLE_BASE, IDLE_BASE, IDLE_BLINK], fps: 4 },
@@ -318,12 +317,12 @@ export const ANIMATIONS: Record<CharacterState, SpriteAnimation> = {
   talking: { frames: [IDLE_BASE, TALK_OPEN, IDLE_BASE, TALK_OPEN, IDLE_BLINK], fps: 8 },
   sleeping: { frames: [SLEEP], fps: 1 },
   surprise: { frames: [SURPRISE, IDLE_BASE], fps: 4 },
-  evil: { frames: [IDLE_BASE], fps: 1 },
+  evil: { frames: [EVIL], fps: 1 },
   battling: { frames: [BATTLE_IDLE, BATTLE_SWING], fps: 7 },
   sherlock: { frames: [SHERLOCK_IDLE, SHERLOCK_IDLE, SHERLOCK_IDLE, SHERLOCK_BLINK], fps: 4 },
 };
 
-const PIXEL_SIZE = 4; // 16 * 4 = 64 px sprite
+const PIXEL_SIZE = 4;
 export const SPRITE_SIZE = 16 * PIXEL_SIZE;
 
 function renderFrame(frame: Frame): HTMLCanvasElement {
@@ -379,6 +378,3 @@ export class SpriteRenderer {
     g.restore();
   }
 }
-
-// Re-export so other modules don't need to import sprite internals.
-export type { Pixel };
