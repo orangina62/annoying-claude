@@ -31,7 +31,11 @@ async function boot(): Promise<void> {
         window.claudeAPI.notifyBattleSwingHit({ dirX: dir.x, dirY: dir.y, forcePx });
       }
     },
-    onBattleEnd: () => play('pop'),
+    onBattleEnd: () => {
+      play('pop');
+      // Duel timer is up — send any surviving goose fleeing off-screen.
+      opponent?.retreat();
+    },
     onHit: () => play('pop'),
     onStunned: () => play('thinking'),
   });
@@ -118,6 +122,9 @@ async function boot(): Promise<void> {
         y: claudeBb.y + claudeBb.h / 2,
       });
       opponent.draw(g);
+      // Goose is down — end the duel now instead of leaving Claude posing
+      // in his battle stance until the timer runs out.
+      if (opponent.isDefeated()) character.endBattle();
     } else if (opponent && !opponent.isAlive()) {
       opponent = null;
     }

@@ -96,6 +96,23 @@ export class Character {
     return this.state === 'battling';
   }
 
+  /**
+   * End the current battle/duel and drop straight back to idle. Safe to call
+   * repeatedly — a no-op once Claude has already left the battle. Driven by the
+   * battle timer, and by a duel ending early once the goose is defeated.
+   */
+  endBattle(): void {
+    if (this.state !== 'battling') return;
+    this.setState('idle');
+    this.cursor = null;
+    // Drop any stray move command that may have arrived during battle —
+    // otherwise Claude would teleport to it on the next frame.
+    this.moveFrom = null;
+    this.moveTo = null;
+    this.notifiedArrival = true;
+    this.deps.onBattleEnd?.();
+  }
+
   isStunned(): boolean {
     return this.stunnedUntil > performance.now();
   }
@@ -130,6 +147,9 @@ export class Character {
         // Claude away the moment the battle ends.
         if (this.state === 'battling') return;
         if (cmd.x == null || cmd.y == null) return;
+        // Reject NaN/Infinity targets — they would propagate into x/y and
+        // strand Claude off-canvas permanently.
+        if (!Number.isFinite(cmd.x) || !Number.isFinite(cmd.y)) return;
         this.startMove(cmd.x, cmd.y, cmd.durationMs ?? 1500);
         break;
       case 'setState':
@@ -155,7 +175,7 @@ export class Character {
     this.moveFrom = { x: this.x, y: this.y };
     this.moveTo = { x: targetX, y: targetY };
     this.moveElapsed = 0;
-    this.moveDuration = durationMs;
+    this.moveDuration = Math.max(1, durationMs);
     this.notifiedArrival = false;
     this.direction = targetX < this.x ? 'left' : 'right';
     // Persistent states (dragging, battling, sleeping) keep their animation
@@ -217,23 +237,20 @@ export class Character {
     const h = typeof window !== 'undefined' ? window.innerHeight : this.deps.screen.height;
     const maxX = Math.max(0, w - SPRITE_SIZE);
     const maxY = Math.max(0, h - SPRITE_SIZE);
-    if (this.x < 0) this.x = 0;
-    else if (this.x > maxX) this.x = maxX;
-    if (this.y < 0) this.y = 0;
-    else if (this.y > maxY) this.y = maxY;
+    // A non-finite coordinate (NaN/Infinity) slips past every `<`/`>` test
+    // below — every comparison with NaN is false — and leaves Claude drawn at
+    // drawImage(NaN, NaN), which paints nothing. He then vanishes for good.
+    // Recover by snapping him back to the middle of the screen.
+    if (!Number.isFinite(this.x)) this.x = maxX / 2;
+    else this.x = Math.min(maxX, Math.max(0, this.x));
+    if (!Number.isFinite(this.y)) this.y = maxY / 2;
+    else this.y = Math.min(maxY, Math.max(0, this.y));
   }
 
   private updateBattle(dtMs: number): void {
     const now = performance.now();
     if (now >= this.battleEndAt) {
-      this.setState('idle');
-      this.cursor = null;
-      // Drop any stray move command that may have arrived during battle —
-      // otherwise Claude would teleport to it on the next frame.
-      this.moveFrom = null;
-      this.moveTo = null;
-      this.notifiedArrival = true;
-      this.deps.onBattleEnd?.();
+      this.endBattle();
       return;
     }
 
