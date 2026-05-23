@@ -70,7 +70,11 @@ async function boot(): Promise<void> {
         onContactClaude: () => character.takeOpponentHit(),
         onDefeated: () => play('pop'),
         onGone: () => {
-          opponent = null;
+          // Intentionally no-op: nulling `opponent` here runs synchronously
+          // from inside `opponent.update(...)`, and the very next line below
+          // (`opponent.draw(g)`) then throws on null and kills the render
+          // loop — Claude vanishes for good. Let the next-frame `isAlive()`
+          // branch null it safely between frames instead.
         },
       },
       entryEdge,
@@ -121,10 +125,13 @@ async function boot(): Promise<void> {
         x: claudeBb.x + claudeBb.w / 2,
         y: claudeBb.y + claudeBb.h / 2,
       });
-      opponent.draw(g);
-      // Goose is down — end the duel now instead of leaving Claude posing
-      // in his battle stance until the timer runs out.
-      if (opponent.isDefeated()) character.endBattle();
+      // Belt-and-suspenders: even though we no longer null `opponent` from
+      // inside onGone, guard against any callback that might do so in the
+      // future — calling .draw on null kills the whole render loop.
+      if (opponent) {
+        opponent.draw(g);
+        if (opponent.isDefeated()) character.endBattle();
+      }
     } else if (opponent && !opponent.isAlive()) {
       opponent = null;
     }
